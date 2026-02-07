@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.simulator.stock.demo.dto.AtivoRequestDTO;
+import com.simulator.stock.demo.dto.AtivoResponseDTO;
 import com.simulator.stock.demo.model.AtivoEntity;
 import com.simulator.stock.demo.repository.AtivoRepository;
 
@@ -69,4 +70,14 @@ public class AtivoService {
         return ativoRepository.save(novoAtivo);
     }
     
+    public AtivoResponseDTO toResponseDTO(AtivoEntity ativo) {
+        return new AtivoResponseDTO(
+            ativo.getId(),
+            ativo.getTicker(),
+            ativo.getNomeEmpresa(),
+            ativo.getSetor(),
+            ativo.getPrecoAtual(),
+            ativo.getDataUltimaAtualizacao()
+        );
+    }
 }

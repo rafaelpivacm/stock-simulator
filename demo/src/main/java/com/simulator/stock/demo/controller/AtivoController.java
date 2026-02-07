@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.simulator.stock.demo.dto.AtivoRequestDTO;
+import com.simulator.stock.demo.dto.AtivoResponseDTO;
 import com.simulator.stock.demo.model.AtivoEntity;
 import com.simulator.stock.demo.service.AtivoService;
 
@@ -32,34 +33,43 @@ public class AtivoController {
     private AtivoService ativoService;
     
     @GetMapping("/ticker/{ticker}")
-    public ResponseEntity<AtivoEntity> getByTicker(@PathVariable String ticker) {
+    public ResponseEntity<AtivoResponseDTO> getByTicker(@PathVariable String ticker) {
         try {
                 AtivoEntity ativo = ativoService.getByTicker(ticker);
-                return ResponseEntity.ok(ativo);
+                AtivoResponseDTO dto = ativoService.toResponseDTO(ativo);
+                return ResponseEntity.ok(dto);
             } catch (RuntimeException e) {
                 return ResponseEntity.notFound().build();
             }
         }
 
     @GetMapping("/empresa/{nomeEmpresa}")
-    public ResponseEntity<AtivoEntity> getByNomeEmpresa(@PathVariable String nomeEmpresa) {
+    public ResponseEntity<AtivoResponseDTO> getByNomeEmpresa(@PathVariable String nomeEmpresa) {
         try {
             AtivoEntity ativo = ativoService.getByEmpresa(nomeEmpresa);
-            return ResponseEntity.ok(ativo);
+            AtivoResponseDTO dto = ativoService.toResponseDTO(ativo);
+            return ResponseEntity.ok(dto);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @GetMapping("/setor/{setor}")
-    public List<AtivoEntity> getBySetor(@PathVariable String setor) {
-        return ativoService.getBySetor(setor);   
+    public ResponseEntity<List<AtivoResponseDTO>> getBySetor(@PathVariable String setor) {
+        List<AtivoEntity> ativos = ativoService.getBySetor(setor);
+        List<AtivoResponseDTO> dtos = ativos.stream()
+            .map(ativoService::toResponseDTO)
+            .toList();
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping()
-    public ResponseEntity<List<AtivoEntity>> getAll() {
+    public ResponseEntity<List<AtivoResponseDTO>> getAll() {
         List<AtivoEntity> ativos = ativoService.getAllAtivos();
-        return ResponseEntity.ok(ativos);
+        List<AtivoResponseDTO> dtos = ativos.stream()
+            .map(ativoService::toResponseDTO)
+            .toList();
+        return ResponseEntity.ok(dtos);
     }
 
     @DeleteMapping("/{id}")
@@ -73,20 +83,22 @@ public class AtivoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AtivoEntity> atualizarAtivo(@PathVariable Long id, @RequestBody AtivoEntity ativoAtualizado) {
+    public ResponseEntity<AtivoResponseDTO> atualizarAtivo(@PathVariable Long id, @RequestBody AtivoEntity ativoAtualizado) {
         try {
             AtivoEntity ativo = ativoService.atualizarAtivo(id, ativoAtualizado);
-            return ResponseEntity.ok(ativo);
+            AtivoResponseDTO dto = ativoService.toResponseDTO(ativo);
+            return ResponseEntity.ok(dto);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
   
     @PostMapping()
-    public ResponseEntity<AtivoEntity> criarAtivo(@Valid @RequestBody AtivoRequestDTO dto) {
+    public ResponseEntity<AtivoResponseDTO> criarAtivo(@Valid @RequestBody AtivoRequestDTO dto) {
         try {
             AtivoEntity novoAtivo = ativoService.criarAtivo(dto);
-            return ResponseEntity.created(URI.create("/ativos/" + novoAtivo.getId())).body(novoAtivo);
+            AtivoResponseDTO responseDTO = ativoService.toResponseDTO(novoAtivo);
+            return ResponseEntity.created(URI.create("/ativos/" + novoAtivo.getId())).body(responseDTO);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
