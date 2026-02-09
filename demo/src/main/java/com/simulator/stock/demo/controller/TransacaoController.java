@@ -18,7 +18,7 @@ import com.simulator.stock.demo.model.TransacaoEntity;
 import com.simulator.stock.demo.service.TransacaoService;
 
 @RestController
-@RequestMapping("/transacoes")
+@RequestMapping("/api/transacoes")
 public class TransacaoController {
 
     @Autowired

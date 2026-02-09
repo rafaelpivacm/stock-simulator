@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Lista de Ativos</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h1 class="mb-4">Ativos Disponíveis</h1>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" class="form-control" placeholder="Buscar ativo..." id="searchInput">
+            </div>
+            <div class="col-md-6">
+                <select class="form-control" id="filterSetor">
+                    <option value="">Todos os setores</option>
+                    <option th:each="setor : ${setores}" th:value="${setor}" th:text="${setor}"></option>
+                </select>
+            </div>
+        </div>
+        
+        <table class="table table-hover" id="ativosTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>Ticker</th>
+                    <th>Empresa</th>
+                    <th>Setor</th>
+                    <th>Preço Atual</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="ativo : ${ativos}">
+                    <td>
+                        <strong th:text="${ativo.ticker}"></strong>
+                    </td>
+                    <td th:text="${ativo.nomeEmpresa}"></td>
+                    <td>
+                        <span class="badge bg-secondary" th:text="${ativo.setor}"></span>
+                    </td>
+                    <td>
+                        <span th:if="${ativo.precoAtual != null}" 
+                              th:text="'R$ ' + #numbers.formatDecimal(ativo.precoAtual, 1, 2, 'POINT')"
+                              class="fw-bold"></span>
+                        <span th:if="${ativo.precoAtual == null}" class="text-muted">N/A</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/transacoes/comprar?ativoId={id}(id=${ativo.id})}" 
+                           class="btn btn-sm btn-success">
+                            <i class="bi bi-cart-plus"></i> Comprar
+                        </a>
+                        <button class="btn btn-sm btn-outline-primary" 
+                                th:onclick="'detalhesAtivo(' + ${ativo.id} + ')'">
+                            <i class="bi bi-info-circle"></i> Detalhes
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        // Filtro simples
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#ativosTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+        
+        document.getElementById('filterSetor').addEventListener('change', function() {
+            const filter = this.value;
+            const rows = document.querySelectorAll('#ativosTable tbody tr');
+            
+            rows.forEach(row => {
+                const setor = row.querySelector('td:nth-child(3)').textContent.trim();
+                row.style.display = (filter === '' || setor === filter) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Comprar Ações</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row">
+            <div class="col-md-8">
+                <h1 class="mb-4">Comprar Ações</h1>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="@{/transacoes/carteira/1}" method="post">
+                            <input type="hidden" name="tipo" value="COMPRA">
+                            
+                            <div class="mb-3">
+                                <label for="ativoId" class="form-label">Selecione o Ativo</label>
+                                <select class="form-control" id="ativoId" name="ativoId" required>
+                                    <option value="">-- Selecione um ativo --</option>
+                                    <option th:each="ativo : ${ativos}" 
+                                            th:value="${ativo.id}"
+                                            th:text="${ativo.ticker} + ' - ' + ${ativo.nomeEmpresa} + (${ativo.precoAtual != null} ? ' (R$ ' + ${#numbers.formatDecimal(ativo.precoAtual, 1, 2, 'POINT')} + ')' : '')">
+                                    </option>
+                                </select>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="quantidade" class="form-label">Quantidade</label>
+                                        <input type="number" class="form-control" id="quantidade" 
+                                               name="quantidade" min="1" value="100" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="valorUnitario" class="form-label">Preço Unitário (R$)</label>
+                                        <input type="number" class="form-control" id="valorUnitario"
+                                               name="valorUnitario" step="0.01" min="0.01" value="35.50" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <strong>Valor Total da Operação:</strong>
+                                <span id="valorTotal" class="fw-bold">R$ 3.550,00</span>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/}" class="btn btn-secondary me-md-2">Cancelar</a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-cart-check"></i> Confirmar Compra
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Informações Importantes</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="bi bi-info-circle text-primary"></i>
+                                <strong>Saldo Disponível:</strong>
+                                <span th:text="' R$ ' + ${#numbers.formatDecimal(saldo, 1, 2, 'POINT')}"></span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-clock text-warning"></i>
+                                As ordens são executadas imediatamente
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-exclamation-triangle text-danger"></i>
+                                Investimentos têm riscos
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6>Dicas para Iniciantes:</h6>
+                        <ol class="small">
+                            <li>Comece com valores pequenos</li>
+                            <li>Diversifique seus investimentos</li>
+                            <li>Estude antes de investir</li>
+                            <li>Tenha paciência</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Calcular valor total em tempo real
+        const quantidadeInput = document.getElementById('quantidade');
+        const precoInput = document.getElementById('valorUnitario');
+        const valorTotalSpan = document.getElementById('valorTotal');
+        
+        function calcularTotal() {
+            const quantidade = parseFloat(quantidadeInput.value) || 0;
+            const preco = parseFloat(precoInput.value) || 0;
+            const total = quantidade * preco;
+            
+            valorTotalSpan.textContent = 'R$ ' + total.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        
+        quantidadeInput.addEventListener('input', calcularTotal);
+        precoInput.addEventListener('input', calcularTotal);
+        
+        // Calcular inicial
+        calcularTotal();
+    </script>
+</body>
+</html>

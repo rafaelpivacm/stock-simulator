@@ -15,7 +15,7 @@ import com.simulator.stock.demo.model.PosicaoEntity;
 import com.simulator.stock.demo.service.CarteiraService;
 
 @RestController
-@RequestMapping("/carteiras")
+@RequestMapping("/api/carteiras")
 public class CarteiraController {
 
     @Autowired

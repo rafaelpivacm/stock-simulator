@@ -18,7 +18,7 @@ import com.simulator.stock.demo.service.UsuarioService;
 
 
 @RestController
-@RequestMapping("/usuarios")
+@RequestMapping("/api/usuarios")
 public class UsuarioController {
 
     @Autowired

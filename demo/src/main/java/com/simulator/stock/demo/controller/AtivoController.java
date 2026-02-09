@@ -26,7 +26,7 @@ import jakarta.validation.Valid;
 
 
 @RestController
-@RequestMapping("/ativos")
+@RequestMapping("/api/ativos")
 public class AtivoController {
 
     @Autowired

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprar Ações | Simulador Financeiro</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar {
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding: 20px 0;
+            border-top: 1px solid #e7e7e7;
+            background-color: #f8f9fa;
+        }
+        
+        .alert {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-graph-up me-2"></i>Simulador Financeiro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ativos">Ativos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/carteira">Minha Carteira</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/transacoes/comprar">Comprar Ações</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-5 fw-bold text-primary">Comprar Ações</h1>
+                <p class="lead text-muted">Realize a compra de ações para sua carteira.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <form id="compraForm" method="post">
+                            <input type="hidden" name="tipo" value="COMPRA">
+                            
+                            <div class="mb-3">
+                                <label for="ativoId" class="form-label">Selecione o Ativo</label>
+                                <select class="form-control" id="ativoId" name="ativoId" required>
+                                    <option value="">-- Selecione um ativo --</option>
+                                    <option th:each="ativo : ${ativos}" 
+                                            th:value="${ativo.id}"
+                                            th:data-preco="${ativo.precoAtual != null ? ativo.precoAtual : 0}"
+                                            th:text="${ativo.ticker} + ' - ' + ${ativo.nomeEmpresa} + (${ativo.precoAtual != null} ? ' (R$ ' + ${#numbers.formatDecimal(ativo.precoAtual, 1, 2, 'POINT')} + ')' : '')">
+                                    </option>
+                                </select>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="quantidade" class="form-label">Quantidade</label>
+                                        <input type="number" class="form-control" id="quantidade" 
+                                               name="quantidade" min="1" value="100" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="valorUnitario" class="form-label">Preço Unitário (R$)</label>
+                                        <input type="number" class="form-control" id="valorUnitario"
+                                               name="valorUnitario" step="0.01" min="0.01" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <h5 class="alert-heading">Resumo da Operação</h5>
+                                <p>
+                                    <strong>Valor Total da Operação:</strong>
+                                    <span id="valorTotal" class="fw-bold">R$ 0,00</span>
+                                </p>
+                                <p class="mb-0">
+                                    <strong>Saldo após a compra:</strong>
+                                    <span id="saldoApos" class="fw-bold">R$ 0,00</span>
+                                </p>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="/" class="btn btn-secondary me-md-2">Cancelar</a>
+                                <button type="button" class="btn btn-success" onclick="realizarCompra()">
+                                    <i class="bi bi-cart-check"></i> Confirmar Compra
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Informações Importantes</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="bi bi-info-circle text-primary"></i>
+                                <strong>Saldo Disponível:</strong>
+                                <span id="saldoAtual" th:text="' R$ ' + ${#numbers.formatDecimal(saldo, 1, 2, 'POINT')}">R$ 100.000,00</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-clock text-warning"></i>
+                                As ordens são executadas imediatamente
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-exclamation-triangle text-danger"></i>
+                                Investimentos têm riscos
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6>Dicas para Iniciantes:</h6>
+                        <ol class="small">
+                            <li>Comece com valores pequenos</li>
+                            <li>Diversifique seus investimentos</li>
+                            <li>Estude antes de investir</li>
+                            <li>Tenha paciência</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <span class="text-muted">Simulador Financeiro - Desenvolvido para aprendizado</span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Elementos DOM
+        const ativoSelect = document.getElementById('ativoId');
+        const quantidadeInput = document.getElementById('quantidade');
+        const precoInput = document.getElementById('valorUnitario');
+        const valorTotalSpan = document.getElementById('valorTotal');
+        const saldoAposSpan = document.getElementById('saldoApos');
+        const saldoAtualSpan = document.getElementById('saldoAtual');
+        
+        // Saldo atual (extrair do texto)
+        const saldoAtual = parseFloat(saldoAtualSpan.textContent.replace('R$', '').replace('.', '').replace(',', '.'));
+        
+        // Calcular valor total em tempo real
+        function calcularTotal() {
+            const quantidade = parseFloat(quantidadeInput.value) || 0;
+            const preco = parseFloat(precoInput.value) || 0;
+            const total = quantidade * preco;
+            const saldoApos = saldoAtual - total;
+            
+            valorTotalSpan.textContent = 'R$ ' + total.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            saldoAposSpan.textContent = 'R$ ' + saldoApos.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            // Verificar se tem saldo suficiente
+            if (saldoApos < 0) {
+                saldoAposSpan.className = 'fw-bold text-danger';
+            } else {
+                saldoAposSpan.className = 'fw-bold text-success';
+            }
+        }
+        
+        // Preencher preço quando selecionar ativo
+        ativoSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const preco = selectedOption.getAttribute('data-preco');
+            if (preco && preco > 0) {
+                precoInput.value = parseFloat(preco).toFixed(2);
+                calcularTotal();
+            }
+        });
+        
+        quantidadeInput.addEventListener('input', calcularTotal);
+        precoInput.addEventListener('input', calcularTotal);
+        
+        // Calcular inicial
+        calcularTotal();
+        
+        // Realizar compra via API
+        function realizarCompra() {
+            const ativoId = ativoSelect.value;
+            const quantidade = quantidadeInput.value;
+            const valorUnitario = precoInput.value;
+            const valorTotal = parseFloat(quantidade) * parseFloat(valorUnitario);
+            
+            if (!ativoId) {
+                alert('Selecione um ativo!');
+                return;
+            }
+            
+            if (valorTotal > saldoAtual) {
+                alert('Saldo insuficiente!');
+                return;
+            }
+            
+            const dados = {
+                tipo: 'COMPRA',
+                ativoId: parseInt(ativoId),
+                quantidade: parseInt(quantidade),
+                valorUnitario: parseFloat(valorUnitario)
+            };
+            
+            fetch('/api/transacoes/carteira/1', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dados)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Erro na compra');
+                }
+            })
+            .then(data => {
+                alert('Compra realizada com sucesso!');
+                window.location.href = '/carteira';
+            })
+            .catch(error => {
+                alert('Erro: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
